@@ -85,6 +85,61 @@ the COCONUT-SVSM repository.
 
 \newpage
 
+# [Core] Core Code
+
+This sections lists proposed work items on the COCONUT-SVSM core parts.
+
+## [FallibleAlloc] Convert to Fallible Allocators
+
+The current COCONUT kernel uses the standard Rust allocator interface. This
+comes with implicit panics on allocations failures and only supports one
+backend allocator. A panic on a memory allocation failure is not acceptable in a
+kernel environment so a conversion to a better allocator interface is required.
+The interface needs to return an errors for allocation failures.
+
+Also the enhanced allocator interface needs to support multiple backends to
+handle allocation from the various virtual memory pools (Global shared,
+per-cpu, per-task).
+
+## [PtSelfMap] Page Table Self Map
+
+Implement a self-mapping of the page-table to simplify modifications. This
+allows to implement a fast `virt_to_phys()` mapping without a direct-map.
+
+## [NoDirectMap] Getting Rid of Kernel Direct-Map
+
+Depends on: **Sec.PtSelfMap**, **UsrMode.HeapAlloc**
+
+The COCONUT kernel currently uses a direct map of VMPL0 physical memory. The
+direct map is contrary to the isolation goals of COCONUT-SVSM and should be
+removed in order to increase security of the overall architecture and achieve
+actual isolation.
+
+This is a multi-step approach which requires a rewrite of the page allocator
+and the way heap allocation works. Allocation and usage of shared memory will
+also fundamentally change.
+
+## [LogBuffer] Bring LogBuffer Code Upstream
+
+The COCONUT kernel needs to put its log messages into a log buffer which is not
+printed to the console by default. Anything printed to the serial console is
+visible to the untrusted hypervisor and might reveal information to attack the
+SVSM.
+
+There is a pending PR to implement a log buffer. Review that PR and bring it
+upstream.
+
+## [Obersev] Implement Observability Interface
+
+Specify a protocol to allow to observe the state of COCONUT-SVSM from the guest
+OS. This includes information like log-files, memory usage information, and
+more.
+
+Implement a handler for the protocol in COCONUT-SVSM and a driver plus tooling
+on the guest OS side.
+
+\newpage
+
 # [UsrMode] User-Mode Support
 
 This section lists the work items to implement support for running services in
@@ -486,24 +541,6 @@ page validation backends.
 The GitHub issues for the COCONUT-SVSM contains an issue which lists unsound
 code patterns. This list needs to be updated, evaluated and the patterns need
 to be fixed.
-
-## [PtSelfMap] Page Table Self Map
-
-Implement a self-mapping of the page-table to simplify modifications. This
-allows to implement a fast `virt_to_phys()` mapping without a direct-map.
-
-## [NoDirectMap] Getting Rid of Kernel Direct-Map
-
-Depends on: **Sec.PtSelfMap**, **UsrMode.HeapAlloc**
-
-The COCONUT kernel currently uses a direct map of VMPL0 physical memory. The
-direct map is contrary to the isolation goals of COCONUT-SVSM and should be
-removed in order to increase security of the overall architecture and achieve
-actual isolation.
-
-This is a multi-step approach which requires a rewrite of the page allocator
-and the way heap allocation works. Allocation and usage of shared memory will
-also fundamentally change.
 
 ## [Fuzzing] Improve Fuzzing
 
