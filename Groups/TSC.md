@@ -10,6 +10,7 @@ The Technical Steering Committee (TSC) provides technical guidance and oversight
 - **Jon Lange**
 - **Peter Fang**
 - **Stefano Garzarella**
+- **Carlos López**
 
 All TSC members have write access to the repositories.
 
